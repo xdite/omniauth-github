@@ -1,4 +1,5 @@
 require 'omniauth-oauth2'
+require 'multi_json'
 
 module OmniAuth
   module Strategies
@@ -26,27 +27,13 @@ module OmniAuth
           },
         }
       end
-      
-      credentials do
-        prune!({
-          'expires' => access_token.expires?,
-          'expires_at' => access_token.expires_at
-        })
-      end
 
       def raw_info
         access_token.options[:mode] = :query
-        @raw_info ||= access_token.get('/user').parsed
+        @raw_info ||= MultiJson.decode(access_token.get('/api/v2/json/user/show'))['user']
+
       end
-      
-      private
-      
-      def prune!(hash)
-        hash.delete_if do |_, value| 
-          prune!(value) if value.is_a?(Hash)
-          value.nil? || (value.respond_to?(:empty?) && value.empty?)
-        end
-      end
+
       
     end
   end
